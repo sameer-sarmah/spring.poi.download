@@ -1,0 +1,20 @@
+10.65.149.146 ids.ics.dev
+10.65.149.146 gpod.ics.dev
+10.65.149.146 pod.ics.dev
+10.65.149.146 internal.ics.dev
+10.65.149.146 icsdev
+10.65.149.146 saas
+10.65.149.146 kafkaSingle
+10.65.149.146 pdm.ics.dev
+
+make a shortcut of chrome,name it no security
+make a Temp folder in C:
+--disable-web-security --user-data-dir=C:\Temp --ignore-certificate-errors
+
+https://ids.ics.dev/identity-service/home
+username pat
+password infil200%
+https://ids.ics.dev:3001/
+
+npm i and bower install in ui/webapps folder 
+gulp serve
