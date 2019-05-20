@@ -60,10 +60,10 @@ public class FileDownloadControllerTest {
 				for(int colIndex=row.getFirstCellNum();colIndex <=row.getLastCellNum();colIndex++ ) {
 					Cell cell = row.getCell(colIndex);
 					if(cell != null) {
-						if(cell.getCellTypeEnum().equals(CellType.NUMERIC)) {
+						if(cell.getCellType().equals(CellType.NUMERIC)) {
 							Assert.assertNotNull(cell.getNumericCellValue());
 						}
-						else if(cell.getCellTypeEnum().equals(CellType.STRING)) {
+						else if(cell.getCellType().equals(CellType.STRING)) {
 							Assert.assertNotNull(cell.getStringCellValue());
 						}
 					}
