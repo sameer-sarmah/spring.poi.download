@@ -1,5 +1,6 @@
 package northwind.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
@@ -51,9 +52,16 @@ public class FileDownloadController {
     @RequestMapping( value = "/downloadxls",method = RequestMethod.GET)
     public void downloadTextExcel( HttpServletRequest request,HttpServletResponse response) {
     	String contentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    	String webInfPath = request.getServletContext().getRealPath("/WEB-INF/classes");
+    	String webInfPath = request.getServletContext().getRealPath("/");
     	String fileName=excelWriter.write(webInfPath,getProducts());
     	downloadFile(request,response,fileName,contentType);
+    	String filePath =webInfPath+ File.separator+fileName;
+    	File file = new File(filePath);
+    	if(file.exists()) {
+    		boolean isDeleted = file.delete();
+    		System.out.println(isDeleted);
+    	}
+    	
     }
     
 	public List<Product> getProducts() {
@@ -78,23 +86,33 @@ public class FileDownloadController {
 	}
     
     private void downloadFile(HttpServletRequest request,HttpServletResponse response,String fileName,String contentType) {
-    	String path = String.format("/WEB-INF/classes/%s",fileName);
-        InputStream is = request.getServletContext().getResourceAsStream(path);
-        if (is !=null)
+    	String path = String.format("/%s",fileName);
+        InputStream in = request.getServletContext().getResourceAsStream(path);
+        if (in !=null)
         {
             response.setContentType(contentType);
             response.addHeader("Content-Disposition", "attachment; filename="+fileName);
+            ServletOutputStream out = null;
             try
-            {   ServletOutputStream out = response.getOutputStream();
-                int content = is.read();
+            {   out = response.getOutputStream();
+                int content = in.read();
                 while(content > -1) {
                 	out.write(content);
-                	content = is.read();
+                	content = in.read();
                 }
-                out.flush();
             }
             catch (IOException ex) {
                 ex.printStackTrace();
+            }
+            finally {
+                try {
+					out.flush();
+	                out.close();
+	                in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
             }
         }
     }
