@@ -28,7 +28,7 @@ public class ExcelWriter {
 		String fileName="Products_"+timestamp+".xlsx";
 		String filePath =webInfPath+ File.separator+fileName;
 		
-		Sheet sheet = workbook.createSheet(fileName);
+		Sheet sheet = workbook.createSheet("Products");
 		sheet.setColumnWidth(0, 6000);
 		sheet.setColumnWidth(1, 6000);
 		sheet.setColumnWidth(2, 6000);
@@ -72,17 +72,23 @@ public class ExcelWriter {
 		textFont.setFontHeightInPoints((short) 14);
 		textFont.setBold(false);
 		headerStyle.setFont(textFont);
-
-		for (int index = 1; index <= products.size(); index++) {
+		int index;
+		for (index = 1; index <= products.size(); index++) {
 			Row row = sheet.createRow(index);
-			createRow(products.get(index - 1), index, textStyle, row);
+			createRow(products.get(index - 1), textStyle, row);
 		}
+		
+		double totalPrice = products.stream().mapToDouble(product -> product.getUnitPriceAsDouble()).sum();
+		Row row = sheet.createRow(index);
+		createAggregateRow(totalPrice, textStyle, row);
+		
+		
 		try {
 			File file = new File(filePath);
 			FileOutputStream out = new FileOutputStream(file);
 			workbook.write(out);
 			out.close();
-			System.out.println(file.getAbsolutePath()+"written successfully on disk.");
+			System.out.println(file.getAbsolutePath()+" written successfully on disk.");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -97,7 +103,7 @@ public class ExcelWriter {
 
 	}
 
-	private void createRow(Product product, int index, CellStyle cellStyle, Row row) {
+	private void createRow(Product product,CellStyle cellStyle, Row row) {
 		Cell rowCell = row.createCell(0);
 		rowCell.setCellValue(product.getProductID());
 		rowCell.setCellStyle(cellStyle);
@@ -112,6 +118,24 @@ public class ExcelWriter {
 
 		rowCell = row.createCell(3);
 		rowCell.setCellValue(product.getUnitPrice());
+		rowCell.setCellStyle(cellStyle);
+	}
+	
+	private void createAggregateRow(double totalPrice, CellStyle cellStyle, Row row) {
+		Cell rowCell = row.createCell(0);
+		rowCell.setCellValue("");
+		rowCell.setCellStyle(cellStyle);
+
+		rowCell = row.createCell(1);
+		rowCell.setCellValue("");
+		rowCell.setCellStyle(cellStyle);
+
+		rowCell = row.createCell(2);
+		rowCell.setCellValue("");
+		rowCell.setCellStyle(cellStyle);
+
+		rowCell = row.createCell(3);
+		rowCell.setCellValue(totalPrice);
 		rowCell.setCellStyle(cellStyle);
 	}
 
