@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 import northwind.model.Product;
 
 @Component()
-public class ExcelWriter {
+public class ExcelFileWriter {
 
 	public String write(String webInfPath,List<Product> products) {
 		Workbook workbook = new XSSFWorkbook();

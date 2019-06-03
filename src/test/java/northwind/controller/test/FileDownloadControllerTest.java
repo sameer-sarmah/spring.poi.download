@@ -26,17 +26,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.client.RestTemplate;
 
-import northwind.controller.FileDownloadController;
+import northwind.controller.FileDownloadControllerWithFile;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@WebMvcTest({FileDownloadController.class})
+@WebMvcTest({FileDownloadControllerWithFile.class})
 public class FileDownloadControllerTest {
     
     @Autowired
     private MockMvc mockMvc;
     
     @Autowired
-    private FileDownloadController fileDownloadController;
+    private FileDownloadControllerWithFile fileDownloadController;
     
     @Test
     public void downloadTextExcelTest() {

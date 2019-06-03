@@ -20,6 +20,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,14 +34,14 @@ import northwind.client.ApacheHttpClient;
 import northwind.exception.CoreException;
 import northwind.model.Product;
 import northwind.util.HttpMethod;
-import northwind.writer.ExcelWriter;
+import northwind.writer.ExcelFileWriter;
 
 
 @RestController
-public class FileDownloadController {
+public class FileDownloadControllerWithFile {
 
 	@Autowired
-	ExcelWriter excelWriter;
+	ExcelFileWriter excelWriter;
 	
     @RequestMapping( value = "/downloadpdf",method = RequestMethod.GET)
     public void downloadPDFFile( HttpServletRequest request,HttpServletResponse response) {
@@ -57,14 +58,18 @@ public class FileDownloadController {
     }
     
     @RequestMapping( value = "/downloadxls",method = RequestMethod.GET)
-    public void downloadTextExcel( HttpServletRequest request,HttpServletResponse response) {
+    public void downloadExcel( HttpServletRequest request,HttpServletResponse response) {
     	//String contentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     	String contentType="application/zip";
     	String webInfPath = request.getServletContext().getRealPath("/");
-    	String fileName=excelWriter.write(webInfPath,getProducts());
+		List<Product> products = getProducts();
+		long startTime = new Date().getTime();
+    	String fileName=excelWriter.write(webInfPath,products);
     	try {
 			String zipName = zip(webInfPath,Arrays.asList(fileName));
 	    	downloadFile(request,response,zipName,contentType);
+	    	long endTime = new Date().getTime();
+	    	System.out.println("Time elapsed FileDownloadControllerWithFile "+ (endTime- startTime));
 	    	String filePath =webInfPath+ File.separator+fileName;
 	    	File excelFile = new File(filePath);
 	    	if(excelFile.exists()) {
@@ -107,28 +112,24 @@ public class FileDownloadController {
     
     private void downloadFile(HttpServletRequest request,HttpServletResponse response,String fileName,String contentType) {
     	String path = String.format("/%s",fileName);
-        InputStream in = request.getServletContext().getResourceAsStream(path);
-        if (in !=null)
+        InputStream inputStream = request.getServletContext().getResourceAsStream(path);
+        if (inputStream !=null)
         {
             response.setContentType(contentType);
             response.addHeader("Content-Disposition", "attachment; filename="+fileName);
-            ServletOutputStream out = null;
+            ServletOutputStream outputStream = null;
             try
-            {   out = response.getOutputStream();
-                int content = in.read();
-                while(content > -1) {
-                	out.write(content);
-                	content = in.read();
-                }
+            {   outputStream = response.getOutputStream();
+            	IOUtils.copy(inputStream, outputStream);
             }
             catch (IOException ex) {
                 ex.printStackTrace();
             }
             finally {
                 try {
-					out.flush();
-	                out.close();
-	                in.close();
+                	outputStream.flush();
+                	outputStream.close();
+	                inputStream.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -162,35 +163,4 @@ public class FileDownloadController {
 		return zipName;
 	}
 	
-	private static void unzip(String unzipDir,String zipName) throws IOException {
-        File destDir = new File(unzipDir);
-        byte[] buffer = new byte[1024];
-        ZipInputStream zis = new ZipInputStream(new FileInputStream(zipName));
-        ZipEntry zipEntry = zis.getNextEntry();
-        while (zipEntry != null) {
-            File newFile = unzipFile(destDir, zipEntry);
-            FileOutputStream fos = new FileOutputStream(newFile);
-            int len;
-            while ((len = zis.read(buffer)) > 0) {
-                fos.write(buffer, 0, len);
-            }
-            fos.close();
-            zipEntry = zis.getNextEntry();
-        }
-        zis.closeEntry();
-        zis.close();
-	}
-	
-    public static File unzipFile(File destinationDir, ZipEntry zipEntry) throws IOException {
-        File destFile = new File(destinationDir, zipEntry.getName());
-        String destDirPath = destinationDir.getCanonicalPath();
-        String destFilePath = destFile.getCanonicalPath();
-         
-        if (!destFilePath.startsWith(destDirPath + File.separator)) {
-            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
-        }
-        System.out.println(destFile.getName()+" unzipped");
-        return destFile;
-    }
-
 }
