@@ -10,7 +10,7 @@ import ssl.config.AppConfig;
 
 
 @SpringBootApplication
-@Import(AppConfig.class)
+@Import({AppConfig.class})
 public class ClientApplication  extends SpringBootServletInitializer {
 
     @Override

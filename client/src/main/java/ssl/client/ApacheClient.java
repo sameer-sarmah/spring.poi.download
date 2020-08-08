@@ -2,11 +2,20 @@ package ssl.client;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
@@ -59,6 +68,10 @@ public class ApacheClient {
 
 		try {
 			KeyStore keystore = keyStoreUtil.readStore();
+			List<String> publicKeys = new ArrayList<String>();
+			publicKeys.add("client");
+			publicKeys.add("server");
+			analyseKeystore(keystore,publicKeys,"client");
 			SSLContext sslContext = SSLContexts.custom().loadKeyMaterial(keystore, keyPwd.toCharArray())
 					.loadTrustMaterial(keystore, new TrustSelfSignedStrategy()).build();
 			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
@@ -104,12 +117,42 @@ public class ApacheClient {
 			throw new CoreException(e.getMessage(), 500);
 
 		} catch (IOException e) {
+			e.printStackTrace();
 			logger.error(e.getMessage());
 			throw new CoreException(e.getMessage(), 500);
 		} catch (KeyManagementException | UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException e) {
 			throw new CoreException(e.getMessage(), 500);
 		} catch (Exception e) {
 			throw new CoreException(e.getMessage(), 500);
+		}
+	}
+	
+	public static void analyseKeystore(KeyStore keyStore,List<String> publicKeys,String privateKeyName) {
+		try {
+			System.out.println(String.format("Size of keystore: %s, type of keystore: %s ",keyStore.size(),keyStore.getType()));
+			publicKeys.stream().forEach((publicKey) ->{
+				try {
+					Certificate clientCertificate = keyStore.getCertificate(publicKey);
+					analyseCertificate(clientCertificate);
+				} catch (KeyStoreException e) {
+					e.printStackTrace();
+				}	
+			});
+			Key privateKey = keyStore.getKey(privateKeyName, "password".toCharArray());
+			System.out.println(String.format("algorithm : %s,format : %s",privateKey.getAlgorithm(),privateKey.getFormat()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void analyseCertificate(Certificate certificate) {
+		PublicKey serverPublicKey = certificate.getPublicKey();
+		System.out.println(String.format("algorithm : %s,format : %s",serverPublicKey.getAlgorithm(),serverPublicKey.getFormat()));
+		try {
+			certificate.verify(serverPublicKey);
+		} catch (InvalidKeyException | CertificateException | NoSuchAlgorithmException | NoSuchProviderException
+				| SignatureException e) {
+			e.printStackTrace();
 		}
 	}
 }

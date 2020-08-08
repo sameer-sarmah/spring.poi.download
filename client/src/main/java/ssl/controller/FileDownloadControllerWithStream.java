@@ -2,6 +2,7 @@ package ssl.controller;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +40,7 @@ public class FileDownloadControllerWithStream {
     	OutputStream servletOutputStream = null;
     	try {
     		servletOutputStream = response.getOutputStream();
-    		HttpResponse responseFromDownloadService =client.request(downloadExcelServiceUrl, HttpGet.METHOD_NAME, Map.of(), Map.of(), null);
+    		HttpResponse responseFromDownloadService =client.request(downloadExcelServiceUrl, HttpGet.METHOD_NAME, new HashMap<String,String>(), new HashMap<String,String>(), null);
     		HttpEntity responseEntity = responseFromDownloadService.getEntity();		
     		Header contentDisposition = responseFromDownloadService.getFirstHeader(CONTENT_DISPOSITION);
     		if(contentDisposition.getValue().contains("filename=")) {

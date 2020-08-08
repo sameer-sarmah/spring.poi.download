@@ -1,4 +1,4 @@
-package northwind.controller;
+package northwind.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,17 +10,17 @@ import northwind.config.AppConfig;
 
 
 @SpringBootApplication
-@Import(AppConfig.class)
-public class Application  extends SpringBootServletInitializer {
+@Import({AppConfig.class})
+public class ServerApplication  extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    	return application.sources(Application.class);
+    	return application.sources(ServerApplication.class);
     }
 	
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-		System.err.println("##########");
+		SpringApplication.run(ServerApplication.class, args);
+		System.err.println("##########ServerApplication#######");
 		
 	}
 
